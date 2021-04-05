@@ -27,14 +27,19 @@ sensor = ColorDistanceSensor(Port.B)
 results = {}
 distanceFromTarget = 0
 recent = Buffer(5)
+seenData = False
 
-while distanceFromTarget < TEST_DISTANCE_MM and sum(recent.store) < 500:
+while distanceFromTarget < TEST_DISTANCE_MM and (sum(recent.store) < 500 or not seenData):
     wait(500)
     newReading = sensor.distance()
+    if newReading < 100:
+        seenData = True
     results[distanceFromTarget] = newReading
     recent.push(newReading)
     motor.run_angle(100, -DEGREES_PER_INCREMENT, Stop.HOLD)
     distanceFromTarget += TEST_INCREMENT_MM
 motor.run_angle(150, 0, Stop.COAST)
-for key in sorted(results):
-    print("%s: %s" % (key, results[key]))
+sortedResultKeys = sorted(results)
+for key in sortedResultKeys:
+    print("%s" % (results[key]))
+print("Last reading was at %smm" % (sortedResultKeys[-1]))
