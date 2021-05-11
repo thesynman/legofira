@@ -1,6 +1,5 @@
-from pybricks.pupdevices import Motor, ColorDistanceSensor
-from pybricks.parameters import Port, Stop, Direction
-from pybricks.tools import wait
+from pybricks.pupdevices import Motor
+from pybricks.parameters import Port, Direction
 from pybricks.robotics import DriveBase
 
 leftMotor = Motor(Port.C, Direction.COUNTERCLOCKWISE, gears=[12,20])
