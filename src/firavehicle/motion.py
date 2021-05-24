@@ -1,5 +1,7 @@
 import coordinate
+import colour
 
+from pybricks.parameters import Color
 
 class Motion:
     def __init__(self, cd_sensor, drive_base):
@@ -11,9 +13,12 @@ class Motion:
         self.normalSpeed()
 
     def normalSpeed(self):
+        print("setting normal speed")
+        self.drive_base.stop()
         self.drive_base.settings(100, 150, 70, 100)
 
     def slowSpeed(self):
+        self.drive_base.stop()
         self.drive_base.settings(20, 20, 20, 20)
 
     def seek(self):
@@ -47,16 +52,46 @@ class Motion:
         # stop and sniff the color when the sensor value gets to 10
         distance = self.cd_sensor.distance()
         self.slowSpeed()
-        while True:
+        while self._senseColour() == Color.NONE:
             self.drive_base.straight(10)
             self.position.ahead(self.heading, 10)
             new_distance = self.cd_sensor.distance()
             if new_distance > distance:
                 self._realign(new_distance)
                 new_distance = self.cd_sensor.distance()
-            elif new_distance == 10:
-                return self._senseColour()
+            elif new_distance <= 10:
+                raise ValueError("Close to target, but still can't identify it")
             distance = new_distance
+        self.normalSpeed()
+        return self._senseColour()
+
+    def takePosition(self, colour_sensed):
+        if colour_sensed == Color.NONE:
+            raise ValueError("Asked to take position but no color is sensed")
+        target_distance = colour.getColourDistanceMap()[colour_sensed]
+        self.slowSpeed()
+        current_distance = self.cd_sensor.distance()
+        delta = 2
+        while current_distance <= target_distance[0]:
+            print(current_distance)
+            self.drive_base.straight(-delta)
+            self.position.ahead(self.heading, delta)
+            current_distance = self.cd_sensor.distance()
+        while current_distance != target_distance[0]:
+            print(current_distance)
+            self.drive_base.straight(delta)
+            self.position.ahead(self.heading, delta)
+            current_distance = self.cd_sensor.distance()
+        self.drive_base.straight(target_distance[1])
+        self.position.ahead(self.heading, target_distance[1])
+        self.normalSpeed()
+
+    def capture(self):
+        self.slowSpeed()
+        self.drive_base.straight(-70)
+        self.position.ahead(self.heading, -70)
+        self.drive_base.turn(-180)
+        self.heading -= 180
 
     def _realign(self, current_distance):
         # angle = 10
@@ -67,4 +102,5 @@ class Motion:
         raise ValueError('realign not expected')
 
     def _senseColour(self):
-        pass
+        print(self.cd_sensor.hsv())
+        return self.cd_sensor.color()
