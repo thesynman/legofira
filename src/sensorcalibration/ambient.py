@@ -2,7 +2,7 @@ from pybricks.parameters import Port
 from pybricks.tools import wait
 from pybricks.pupdevices import ColorDistanceSensor
 
-cdsensor = ColorDistanceSensor(Port.A)
+cdsensor = ColorDistanceSensor(Port.B)
 
 lastReading = {}
 
