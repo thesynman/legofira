@@ -1,4 +1,4 @@
-import coordinate
+import navigation
 import colour
 
 from pybricks.parameters import Color
@@ -6,15 +6,13 @@ from pybricks.parameters import Color
 
 class Motion:
     def __init__(self, cd_sensor, drive_base):
-        self.heading = 0
-        self.position = coordinate.Coordinate(0, 0)
+        self.position = navigation.Coordinate(0, 0, 0)
         self.peek_angle = 30
         self.cd_sensor = cd_sensor
         self.drive_base = drive_base
         self.normalSpeed()
 
     def normalSpeed(self):
-        print("setting normal speed")
         self.drive_base.stop()
         self.drive_base.settings(100, 150, 70, 100)
 
@@ -43,13 +41,12 @@ class Motion:
         return self.cd_sensor.distance()
 
     def identify(self):
-        if self.cd_sensor.distance() == 100:
-            raise ValueError('Asked to identify, but nothing in range')
-        # advance watching the delta on the sensor
-        # stop and sniff the color when the sensor value gets to 10
         distance = self.cd_sensor.distance()
+        if distance == 100:
+            raise ValueError('Asked to identify, but nothing in range')
         self.slowSpeed()
-        while self._senseColour() == Color.NONE:
+        colour_detected = self._senseColour()
+        while colour_detected == Color.NONE:
             self._drive(10)
             new_distance = self.cd_sensor.distance()
             if new_distance > distance:
@@ -58,8 +55,9 @@ class Motion:
             elif new_distance <= 10:
                 raise ValueError("Close to target, but still can't identify it")
             distance = new_distance
+            colour_detected = self._senseColour()
         self.normalSpeed()
-        return self._senseColour()
+        return colour_detected
 
     def takePosition(self, colour_sensed):
         if colour_sensed == Color.NONE:
@@ -83,22 +81,27 @@ class Motion:
         self.slowSpeed()
         self._drive(-70)
         self._turn(-180)
+        self._drive(10)
+        self.normalSpeed()
+
+    def driveTo(self, destination, terrain):
+        route = terrain.plotRouteFromTo(self.position, destination)
+        for step in route:
+            if step.getType() == step.DRIVE:
+                self._drive(step.getAmount())
+            elif step.getType == step.TURN:
+                self._turn(step.getAmount())
 
     def _realign(self, current_distance):
-        # angle = 10
-        # while (new_distance := self.cd_sensor.distance()) > current_distance:
-        #     self.drive_base.turn(angle)
-        #     self.heading += angle
-        # pass
         raise ValueError('realign not expected')
 
     def _drive(self, delta):
         self.drive_base.straight(delta)
-        self.position.ahead(self.heading, delta)
+        self.position.ahead(delta)
 
     def _turn(self, angle):
         self.drive_base.turn(angle)
-        self.heading += angle
+        self.position.turn(angle)
 
     def _senseColour(self):
         print(self.cd_sensor.hsv())
