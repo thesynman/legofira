@@ -44,6 +44,7 @@ try:
     _lightBlink(PBColor.WHITE)
     _waitForController()
     _lightOff()
+    home = motion.position.copy()
     while True:
         try:
             motion.seek()
@@ -54,7 +55,8 @@ try:
             motion.takePosition(found)
             print("Took position")
             motion.capture()
-            motion.driveTo(navigation.Coordinate(0, 0, 0), terrain)
+            motion.driveTo(home, terrain)
+            print("Returned to " + str(motion.position))
         except ValueError as ve:
             print(ve)
         print("waiting...")

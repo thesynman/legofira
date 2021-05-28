@@ -87,10 +87,10 @@ class Motion:
     def driveTo(self, destination, terrain):
         route = terrain.plotRouteFromTo(self.position, destination)
         for step in route:
-            if step.getType() == step.DRIVE:
-                self._drive(step.getAmount())
-            elif step.getType == step.TURN:
-                self._turn(step.getAmount())
+            if step.type == step.DRIVE:
+                self._drive(step.amount)
+            elif step.type == step.TURN:
+                self._turn(step.amount)
 
     def _realign(self, current_distance):
         raise ValueError('realign not expected')
